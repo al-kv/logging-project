@@ -1,0 +1,62 @@
+version: "3.9"
+
+services:
+  loki:
+    image: grafana/loki:2.9.6
+    container_name: loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/config/loki-config.yml
+    volumes:
+      - ./loki/config:/etc/loki/config
+      - ./loki/data:/var/loki
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:10.4.1
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - loki
+      - prometheus
+    volumes:
+      - ./grafana:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v2.55.0
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/data:/prometheus
+    restart: unless-stopped
+  vector:
+    image: timberio/vector:0.41.0-debian
+    container_name: vector
+    depends_on:
+      - loki
+    volumes:
+      - ./vector/vector.yaml:/etc/vector/vector.yaml:ro
+      - ./nginx/log:/var/log/nginx:ro
+    command: ["--config", "/etc/vector/vector.yaml"]
+    ports:
+      - "8686:8686"
+    restart: unless-stopped
+
+
+  nginx:
+    image: nginx:stable
+    container_name: nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/log:/var/log/nginx
+    restart: unless-stopped
+

@@ -1,0 +1,62 @@
+sources:
+  nginx_access:
+    type: file
+    include:
+      - /var/log/nginx/access.log
+    read_from: beginning
+    ignore_older_secs: 259200
+
+  nginx_error:
+    type: file
+    include:
+      - /var/log/nginx/error.log
+    read_from: beginning
+    ignore_older_secs: 259200
+
+transforms:
+  enrich_access:
+    type: remap
+    inputs:
+      - nginx_access
+    source: |
+      .service = "nginx"
+      .log_type = "access"
+
+  enrich_error:
+    type: remap
+    inputs:
+      - nginx_error
+    source: |
+      .service = "nginx"
+      .log_type = "error"
+
+sinks:
+  to_loki_access:
+    type: loki
+    inputs:
+      - enrich_access
+    endpoint: http://loki:3100
+    encoding:
+      codec: text
+    labels:
+      service: "{{ service }}"
+      log_type: "access"
+    buffer:
+      type: memory
+
+  to_loki_error:
+    type: loki
+    inputs:
+      - enrich_error
+    endpoint: http://loki:3100
+    encoding:
+      codec: text
+    labels:
+      service: "{{ service }}"
+      log_type: "error"
+    buffer:
+      type: memory
+
+api:
+  enabled: true
+  address: "0.0.0.0:8686"

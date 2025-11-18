@@ -1,0 +1,481 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 5,
+  "links": [],
+  "panels": [
+    {
+      "datasource": "loki",
+      "description": "Процентное содержание ошибок 4xx и 5xx от всех запросов.\nВысокое значение (>5%) указывает на проблемы в приложении.\nМетрика пересчитывается каждые 15 секунд.",
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 50
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
+      },
+      "pluginVersion": "10.4.1",
+      "targets": [
+        {
+          "expr": "sum(count_over_time({service=\"nginx\", log_type=\"access\"} | regexp \"\\\".*\\\" (?P<status>[0-3][0-9]{2})\" [15m]))",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(count_over_time({service=\"nginx\", log_type=\"access\"} | regexp \"\\\".*\\\" (?P<status>[4-5][0-9]{2})\" [15m]))",
+          "refId": "B"
+        }
+      ],
+      "title": "Error Rate",
+      "type": "gauge"
+    },
+    {
+      "datasource": "loki",
+      "description": "Распределение типов HTTP запросов.\nПолезно для анализа паттернов трафика.\nGET обычно доминирует, POST указывает на операции записи.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineWidth": 1,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "string"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 6,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "barRadius": 0,
+        "barWidth": 0.97,
+        "fullHighlight": false,
+        "groupWidth": 0.7,
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "orientation": "auto",
+        "showValue": "auto",
+        "stacking": "none",
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 0
+      },
+      "targets": [
+        {
+          "expr": "sum by (method)(count_over_time({service=\"nginx\", log_type=\"access\"} | regexp \"\\\"(?P<method>[A-Z]+)\\\\s\" [5m]))",
+          "refId": "C"
+        }
+      ],
+      "title": "Top HTTP Methods",
+      "type": "barchart"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "cf42racpw1ds0f"
+      },
+      "description": "",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 7,
+      "options": {
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
+        "content": "# 📊 Nginx Logs Monitoring Dashboard\n\n## Назначение\nМониторинг логов и метрик Nginx в реальном времени. Дашборд помогает быстро обнаружить ошибки, проанализировать трафик и отследить аномалии.\n\n## 🛠️ Используемые технологии\n- **Grafana** - визуализация и дашборды\n- **Loki** - агрегация логов через LogQL запросы\n- **Prometheus** - сбор метрик\n- **Vector** - пересылка логов из Nginx в Loki\n- **Nginx** - веб-сервер\n\n## 📖 Как читать дашборд\n\n### Зелёный цвет = всё хорошо ✅\n- Низкий Error Rate\n- Много успешных 2xx ответов\n\n### Красный цвет = внимание требуется ⚠️\n- Высокий Error Rate\n- Много ошибок 5xx\n- Аномалии в объёме логов\n\n## 🔍 Советы по использованию\n\n1. **Выбирай временной интервал** справа вверху (Last 15 minutes, Last hour, etc)\n2. **Error Rate > 3%** - проблема! Смотри Recent Error Logs\n3. **HTTP Status Codes** - ищи красные скачки (5xx ошибки)\n4. **Log Volume Over Time** - резкий рост = DDoS или аномалия в трафике\n\n## 🔗 Полезные ссылки\n- Explore → LogQL запросы для поиска конкретных ошибок\n- Prometheus targets → проверить, что все метрики собираются\n\n---\n\n# LogQL Queries Reference\n\n## LogQL запросы для поиска логов\n\n### Все логи доступа Nginx\n```logql\n{log_type=\"access\", service=\"nginx\"}\n```\n\n### Только ошибки 5xx\n```logql\n{log_type=\"access\", service=\"nginx\"} |~ \"HTTP/[0-9.]+ 5[0-9]{2}\"\n```\n\n### Только ошибки 4xx\n```logql\n{log_type=\"access\", service=\"nginx\"} |~ \"HTTP/[0-9.]+ 4[0-9]{2}\"\n```\n\n### Логи ошибок Nginx\n```logql\n{log_type=\"error\", service=\"nginx\"}\n```\n\n### Количество запросов по GET\n```logql\ncount_over_time({log_type=\"access\", service=\"nginx\"} |~ \"GET\" [5m])\n```\n\n### Поиск конкретного пути (например, /fail)\n```logql\n{log_type=\"access\", service=\"nginx\"} |= \"/fail\"\n```\n\n## 💡 Как использовать эти запросы\n\n1. Нажми **Explore** (боковое меню слева)\n2. Выбери **Loki** как Data Source\n3. Скопируй один из запросов выше\n4. Вставь в поле поиска\n5. Нажми **Run**\n\nРезультаты покажут все логи, которые соответствуют фильтрам!",
+        "mode": "markdown"
+      },
+      "pluginVersion": "10.4.1",
+      "title": "\"Nginx Logs Monitoring Dashboard\"",
+      "type": "text"
+    },
+    {
+      "datasource": "loki",
+      "description": "Самые часто запрашиваемые пути и частота обращений.\nПомогает выявить самые нагруженные endpoints.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 6
+      },
+      "id": 3,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "10.4.1",
+      "targets": [
+        {
+          "expr": "topk(10, sum by (uri)(rate({service=\"nginx\", log_type=\"access\"} | regexp \"\\\"(?P<method>\\\\S+)\\\\s+(?P<uri>\\\\S+)\\\\s+(?P<protocol>\\\\S+)\\\"\" [5m])))",
+          "refId": "D"
+        }
+      ],
+      "title": "Top Requested URIs",
+      "type": "table"
+    },
+    {
+      "datasource": "loki",
+      "description": "Тренд кодов ответов Nginx за выбранный период.\n- 2xx (зелёный): успешные запросы\n- 5xx (красный): серверные ошибки\nРезкие скачки 5xx требуют внимания.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "id": 4,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (status)(count_over_time({service=\"nginx\", log_type=\"access\"} | regexp \"\\\".*\\\" (?P<status>[0-9]{3})\" [5m]))",
+          "refId": "E"
+        }
+      ],
+      "title": "HTTP Status Codes Over Time",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "cf42racpw1ds0f"
+      },
+      "description": "Последние 100 ошибок и исключений в Nginx.\nИспользуется для быстрой диагностики проблем.\nКликните на лог для более детального анализа.\n",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 14
+      },
+      "id": 6,
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": false,
+        "showTime": false,
+        "sortOrder": "Descending",
+        "wrapLogMessage": false
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "cf42racpw1ds0f"
+          },
+          "editorMode": "code",
+          "expr": "{service=\"nginx\", log_type=\"access\"}\r\n| pattern \"<ip> - - [<time>] \\\"<method> <uri> <http>\\\" <status> <size> \\\"<ref>\\\" \\\"<ua>\\\"\"\r\n| status =~ \"4..|5..\"\r\n",
+          "queryType": "range",
+          "refId": "G"
+        }
+      ],
+      "title": "Recent Error Logs",
+      "type": "logs"
+    },
+    {
+      "datasource": "loki",
+      "description": "Объём логов, генерируемых Nginx в час.\nПомогает обнаружить аномалии в трафике.\nИспользуется для калибровки retention политики логов.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 12,
+        "y": 16
+      },
+      "id": 5,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "expr": "count_over_time({service=\"nginx\", log_type=\"access\"} [5m])",
+          "refId": "F"
+        }
+      ],
+      "title": "Log Volume Over Time",
+      "type": "timeseries"
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": [],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Nginx Logs Dashboard (FinalV2)",
+  "uid": "bf4dgrf6sh0cgd",
+  "version": 15,
+  "weekStart": ""
+}
