@@ -1,0 +1,46 @@
+# Data directories - НЕ коммитим данные в Git
+grafana/*.db
+grafana/alerting/
+grafana/csv/
+grafana/pdf/
+grafana/png/
+grafana/plugins/
+
+loki/data/
+prometheus/data/
+nginx/log/*.log
+
+# Конфиги КОММИТИМ, но не данные
+!grafana/dashboards/
+!loki/config/
+!nginx/conf.d/
+!prometheus/
+!vector/
+
+# Docker и окружение
+.env
+.env.*.local
+*.override.yml
+
+# Системные файлы
+.DS_Store
+.AppleDouble
+.LSOverride
+*.log
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.sublime-project
+.sublime-workspace
+
+# Прочее
+node_modules/
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
