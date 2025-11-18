@@ -1,0 +1,37 @@
+name: Docker Compose Validation
+
+on: 
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Validate docker-compose.yml syntax
+        run: docker compose config --quiet
+      
+      - name: Check required files exist
+        run: |
+          test -f .env.example
+          test -f README.md
+          test -f .gitignore
+          test -f docker-compose.yml
+      
+      - name: Validate Loki config
+        run: test -f loki/config/loki-config.yml
+      
+      - name: Validate Prometheus config
+        run: test -f prometheus/prometheus.yml
+      
+      - name: Validate Vector config
+        run: test -f vector/vector.yaml
+      
+      - name: All checks passed
+        run: echo "✅ All validations passed!"
